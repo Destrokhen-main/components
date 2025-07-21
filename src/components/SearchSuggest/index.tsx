@@ -16,6 +16,7 @@ import {Xmark} from '@gravity-ui/icons';
 import block from 'bem-cn-lite';
 import uniqueId from 'lodash/uniqueId';
 
+import {useShortcuts, withCtrl} from '../../hooks/useShortcuts';
 import {useTranslation, useVirtualElementRef} from '../../hooks';
 
 import {SearchInput} from './SearchInput';
@@ -84,6 +85,19 @@ export const SearchSuggest = forwardRef<SearchSuggestApi, SearchSuggestProps>((p
     const [active, setActive] = useState<undefined | number>(undefined);
     const [focused, setFocused, handlers] = useFocus(props);
     const [box, watch] = useVirtualElementRef(input.current);
+
+    const keyPress = useCallback(() => {
+        const inputElement = input.current?.querySelector('input');
+        if (inputElement) {
+            if (document.activeElement === inputElement) {
+                inputElement.blur();
+            } else {
+                inputElement.focus();
+            }
+        }
+    }, []);
+
+    useShortcuts([withCtrl('k')], keyPress);
 
     const submitItem = useCallback(
         (link: string) => {

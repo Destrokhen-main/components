@@ -1,10 +1,11 @@
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {ArrowLeft, ArrowRight} from '@gravity-ui/icons';
 import block from 'bem-cn-lite';
 
 import {useTranslation} from '../../hooks';
 import {Router, TocData, TocItem} from '../../models';
 import {isActiveItem, isExternalHref} from '../../utils';
+import {useShortcuts, withCtrl} from '../../hooks/useShortcuts';
 
 import './TocNavPanel.scss';
 
@@ -90,12 +91,26 @@ TocNavControl.displayName = 'TocNavControl';
 
 const TocNavPanel = memo<TocNavPanelProps>(({items, router, fixed, className, onClick}) => {
     const flatToc = useMemo(() => getFlatToc(items || []), [items]);
+
     const {prevItem, nextItem} = useMemo(
         () => getBoundingItems(flatToc, router),
         [flatToc, router],
     );
 
-    const handleClickFactory = (at: 'prev' | 'next') => () => onClick?.(at);
+    const handleClickFactory = useCallback((at: 'prev' | 'next') => () => onClick?.(at), [onClick]);
+
+    const keyPress = useCallback(
+        (event: KeyboardEvent) => {
+            if (event.key === 'ArrowLeft') {
+                handleClickFactory('prev')();
+            } else if (event.key === 'ArrowRight') {
+                handleClickFactory('next')();
+            }
+        },
+        [handleClickFactory],
+    );
+
+    useShortcuts([withCtrl('ArrowLeft'), withCtrl('ArrowRight')], keyPress);
 
     if (!flatToc.length) {
         return null;
