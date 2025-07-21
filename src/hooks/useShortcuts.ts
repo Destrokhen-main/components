@@ -1,8 +1,20 @@
 import {useCallback, useEffect} from 'react';
 
-export function withCtrl(key: string) {
+export function withCtrl(key: KeyShortcut) {
     return (event: KeyboardEvent) => {
-        return (event.ctrlKey || event.metaKey) && event.key === key;
+        if (event.ctrlKey || event.metaKey) {
+            return typeof key === 'function' ? key(event) : event.key === key;
+        }
+        return false;
+    };
+}
+
+export function withAlt(key: KeyShortcut) {
+    return (event: KeyboardEvent) => {
+        if (event.altKey) {
+            return typeof key === 'function' ? key(event) : event.key === key;
+        }
+        return false;
     };
 }
 
@@ -13,7 +25,7 @@ export function useShortcuts(keys: KeyShortcut[], callback: (event: KeyboardEven
         (event: KeyboardEvent) => {
             if (
                 keys.some((key) => {
-                    return typeof key === 'string' ? event.key === key : key(event);
+                    return typeof key === 'function' ? key(event) : event.key === key;
                 })
             ) {
                 callback(event);
